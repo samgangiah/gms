@@ -1,0 +1,60 @@
+# Migration Configuration
+# Path to source Access database file
+source_database: "/Users/sam/Dev/Gilnokie/SourceDataFromWade/Gilnokie/Database/corpclo.mdb"
+
+# Supabase PostgreSQL connection
+# Assumes Supabase Docker is running
+target_database:
+  host: "localhost"
+  port: 54322
+  database: "postgres"
+  user: "postgres"
+  password: "postgres"
+  # Full connection string (alternative to above)
+  # connection_string: "postgresql://postgres:postgres@localhost:54322/postgres"
+
+# Migration settings
+migration:
+  batch_size: 1000  # Records per batch
+  dry_run: false  # Set to true for validation without insertion
+  force: false  # Force re-migration (clears state)
+  
+# Tables to migrate (empty = all tables)
+# Order matters - dependencies must come first
+tables:
+  - customers
+  - yarn_types
+  - fabric_quality
+  - users
+  - fabric_content
+  - stock_ref
+  - customer_orders
+  - yarn_stock
+  - production_information
+  - delivery_note
+  - pack_info
+  - user_logs
+  # Optional print tables
+  # - print_cust_orders
+  # - print_job_card
+  # - print_pack_info
+  # - print_prod_info
+  # - print_yarn_detail
+  # - print_yarn_info
+  # - print_yarn_mod
+  # Archive tables
+  # - prod_info_archive
+  # - stock_adjust
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_file: "reports/migration-log.txt"
+  error_file: "reports/error-log.json"
+
+# Validation
+validation:
+  check_schema: true  # Validate schemas before migration
+  sample_records: 10  # Number of records to sample for validation
+  strict_mode: false  # Stop on first error vs continue with warnings
+

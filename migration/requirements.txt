@@ -1,0 +1,22 @@
+# Python dependencies for Access to Supabase migration
+# Install with: pip install -r requirements.txt
+
+# Database access
+pyodbc>=5.0.0  # For reading Access .mdb files (requires Microsoft Access Database Engine)
+# Alternative: mdbtools (command-line tool, use subprocess)
+
+# PostgreSQL connection
+psycopg2-binary>=2.9.9
+
+# Data processing
+pandas>=2.0.0
+python-dateutil>=2.8.2
+
+# Configuration
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Utilities
+tqdm>=4.66.0  # Progress bars
+colorama>=0.4.6  # Colored terminal output
+

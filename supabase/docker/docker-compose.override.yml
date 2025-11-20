@@ -1,0 +1,12 @@
+# supabase/docker/docker-compose.override.yml
+version: "3.8"
+
+services:
+  db:
+    volumes:
+      # Override the default volume with external directory
+      # Option A: Local project directory
+      - /Users/sam/Dev/Gilnokie/data/postgres:/var/lib/postgresql/data
+
+      # Option B: Separate fast disk (if available)
+      # - /Volumes/FastDisk/gilnokie-data/postgres:/var/lib/postgresql/data

@@ -1,0 +1,30 @@
+# Migration state and output files
+migration-state.json
+*.log
+*.json
+
+# Reports directory
+reports/
+schema-docs/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
