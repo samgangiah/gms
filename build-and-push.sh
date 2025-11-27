@@ -9,7 +9,7 @@ echo "=================================================="
 echo ""
 
 # Configuration
-DOCKER_USERNAME="samgangiah"  # Your Docker Hub username
+DOCKER_USERNAME="samgfls"  # Your Docker Hub username
 IMAGE_NAME="gilnokie-gms"
 VERSION=$(date +%Y%m%d-%H%M%S)
 LATEST_TAG="latest"

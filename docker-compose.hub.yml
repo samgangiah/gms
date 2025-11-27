@@ -254,7 +254,7 @@ services:
 
   app:
     # Use pre-built image from Docker Hub instead of building
-    image: samgangiah/gilnokie-gms:latest
+    image: samgfls/gilnokie-gms:latest
     container_name: gms-app
     restart: unless-stopped
     depends_on:
