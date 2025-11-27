@@ -40,11 +40,11 @@ cd /opt/gilnokie
 docker --version
 docker ps
 
-# Verify Traefik network exists
-docker network ls | grep traefik
+# Verify proxy network exists (used by Traefik)
+docker network ls | grep proxy
 
-# If traefik network doesn't exist, create it:
-docker network create traefik
+# Verify Traefik is running
+docker ps | grep traefik
 ```
 
 ## Step 2: Set Up Git Authentication
@@ -66,7 +66,7 @@ cat ~/.ssh/id_ed25519.pub
 
 ```bash
 cd /opt/gilnokie
-git clone git@bitbucket.org:your-username/gilnokie.git .
+git clone git@github.com:samgangiah/gms.git .
 ```
 
 ## Step 3: Configure Environment Variables
@@ -111,18 +111,19 @@ DIRECT_URL=postgresql://postgres:your_super_secure_password_here@postgres:5432/g
    - `anon` `public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` `secret` key → `SUPABASE_SERVICE_ROLE_KEY`
 
-## Step 4: Configure DNS
+## Step 4: Verify DNS Configuration
 
-Point your domain to your VPS IP:
+Your DNS should already be configured:
 
 ```
-Type: A Record
-Name: gilnokie (or @)
-Value: your.vps.ip.address
-TTL: 300
+gms.digitalrain.cloud → Your VPS IP
 ```
 
-Wait 5-15 minutes for DNS propagation.
+Verify DNS is working:
+```bash
+ping gms.digitalrain.cloud
+# Should return your VPS IP address
+```
 
 ## Step 5: Build and Deploy
 
@@ -179,7 +180,7 @@ If you have Traefik dashboard enabled, verify that your service appears in the r
 
 ### 7.2 Access Your Application
 
-Visit: `https://gilnokie.yourdomain.com`
+Visit: `https://gms.digitalrain.cloud`
 
 You should see:
 - ✅ HTTPS (automatic via Traefik + Let's Encrypt)
@@ -195,7 +196,7 @@ If you need to create the first admin user:
 # Go to your Supabase project → Authentication → Add User
 
 # Option 2: Sign up through the app
-# Visit https://gilnokie.yourdomain.com and use the signup form
+# Visit https://gms.digitalrain.cloud and use the signup form
 ```
 
 ## Deployment Commands Reference

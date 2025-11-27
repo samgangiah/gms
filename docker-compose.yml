@@ -39,21 +39,16 @@ services:
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
     networks:
       - gilnokie-network
-      - traefik
+      - proxy
     volumes:
       - ./gilnokie-app/prisma:/app/prisma
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gilnokie.rule=Host(`${DOMAIN:-gilnokie.example.com}`)"
+      - "traefik.http.routers.gilnokie.rule=Host(`${DOMAIN:-gms.digitalrain.cloud}`)"
       - "traefik.http.routers.gilnokie.entrypoints=websecure"
-      - "traefik.http.routers.gilnokie.tls=true"
-      - "traefik.http.routers.gilnokie.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.gilnokie.tls.certresolver=myresolver"
       - "traefik.http.services.gilnokie.loadbalancer.server.port=3000"
-      # HTTP to HTTPS redirect
-      - "traefik.http.routers.gilnokie-http.rule=Host(`${DOMAIN:-gilnokie.example.com}`)"
-      - "traefik.http.routers.gilnokie-http.entrypoints=web"
-      - "traefik.http.routers.gilnokie-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.docker.network=proxy"
 
 volumes:
   postgres_data:
@@ -62,5 +57,5 @@ volumes:
 networks:
   gilnokie-network:
     driver: bridge
-  traefik:
+  proxy:
     external: true
