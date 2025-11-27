@@ -38,7 +38,7 @@ cd /Users/sam/Dev/Gilnokie
 This will:
 - Build the Docker image on your local machine
 - Tag it with timestamp + 'latest'
-- Push to Docker Hub (samgangiah/gilnokie-gms)
+- Push to Docker Hub (samgfls/gilnokie-gms)
 - Takes 2-5 minutes
 
 #### 2. Commit and Push Code Changes
