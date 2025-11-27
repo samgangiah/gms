@@ -28,6 +28,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # Build the application
+# Limit memory usage to prevent hangs on low-memory VPS
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # Production image, copy all the files and run next
