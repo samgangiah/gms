@@ -1,0 +1,576 @@
+// Gilnokie Textile Factory Management System - Prisma Schema
+// Updated with complete field parity from VB6 system
+// Date: 2025-11-14
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// CORE OPERATIONAL MODELS
+// ============================================================================
+
+model CustomerOrder {
+  id              String    @id @default(cuid())
+  jobCardNumber   String    @unique @map("job_card_number")
+  stockReference  String    @map("stock_reference")
+  customerId      String    @map("customer_id")
+
+  // Order Information
+  orderNumber            String?   @map("order_number")
+  customerOrderNumber    String?   @map("customer_order_number")
+  customerPONumber       String?   @map("customer_po_number")
+  orderDate              DateTime  @map("order_date")
+  dateReceived           DateTime? @map("date_received")
+  requiredByDate         DateTime? @map("required_by_date")
+  deliveryDueDate        DateTime? @map("delivery_due_date")
+  priority               String?   @default("Normal")
+
+  // Fabric Specification
+  qualityId              String    @map("quality_id")
+  quantityRequired       Decimal   @map("quantity_required")
+  quantityUnit           String?   @default("kg") @map("quantity_unit")
+  rollCount              Int?      @map("roll_count")
+  targetPieceWeight      Decimal?  @map("target_piece_weight")
+  targetWidth            Decimal?  @map("target_width")
+  targetLength           Decimal?  @map("target_length")
+  targetGSM              Decimal?  @map("target_gsm")
+  finishType             String?   @map("finish_type")
+  dyeMethod              String?   @map("dye_method")
+  fabricColor            String?   @map("fabric_color")
+
+  // Machine & Production
+  machineAssigned        String?   @map("machine_assigned")
+  actualMachine          String?   @map("actual_machine")
+  machineGauge           String?   @map("machine_gauge")
+  machineSpeed           String?   @map("machine_speed")
+  estimatedRunTime       Decimal?  @map("estimated_run_time")
+  setupTime              Decimal?  @map("setup_time")
+  targetEfficiency       Decimal?  @default(85) @map("target_efficiency")
+
+  // Yarn Requirements
+  yarnCalculationMethod  String?   @default("manual") @map("yarn_calculation_method")
+  estimatedYarnRequired  Decimal?  @map("estimated_yarn_required")
+  yarnAllocationStatus   String?   @default("pending") @map("yarn_allocation_status")
+
+  // Costing
+  estimatedCost          Decimal?  @map("estimated_cost")
+  sellingPrice           Decimal?  @map("selling_price")
+  marginPercentage       Decimal?  @map("margin_percentage")
+
+  // Quality Control
+  qualityStandard        String?   @map("quality_standard")
+  inspectionFrequency    String?   @map("inspection_frequency")
+  defectTolerance        Decimal?  @default(2) @map("defect_tolerance")
+  samplingRequired       Boolean   @default(false) @map("sampling_required")
+  sampleQuantity         Int?      @map("sample_quantity")
+
+  // Slitting & Finishing
+  slittingRequired            Boolean   @default(false) @map("slitting_required")
+  targetWidthAfterSlitting    Decimal?  @map("target_width_after_slitting")
+  numberOfSlits               Int?      @map("number_of_slits")
+  finishingRequired           Boolean   @default(false) @map("finishing_required")
+  finishingInstructions       String?   @db.Text @map("finishing_instructions")
+  finishingReference          String?   @map("finishing_reference")
+
+  // Delivery
+  deliveryMethod              String?   @map("delivery_method")
+  deliveryAddress             String?   @db.Text @map("delivery_address")
+  deliveryDescription         String?   @db.Text @map("delivery_description")
+  specialDeliveryInstructions String?   @db.Text @map("special_delivery_instructions")
+  packingInstructions         String?   @db.Text @map("packing_instructions")
+  totalSlipQuantity           Decimal?  @map("total_slip_quantity")
+
+  // Documentation
+  notes                       String?   @db.Text
+  internalNotes               String?   @db.Text @map("internal_notes")
+  customerSpecialRequirements String?   @db.Text @map("customer_special_requirements")
+  qualityNotes                String?   @db.Text @map("quality_notes")
+
+  // Status & Control
+  status                 String    @default("active")
+  approvedBy             String?   @map("approved_by")
+  approvalDate           DateTime? @map("approval_date")
+  jobStatusComplete      Boolean   @default(false) @map("job_status_complete")
+  overrideFlag           Boolean   @default(false) @map("override_flag")
+  overrideValue          Decimal?  @map("override_value")
+
+  // System fields
+  deletedAt              DateTime? @map("deleted_at")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  customer        Customer              @relation(fields: [customerId], references: [id])
+  fabricQuality   FabricQuality         @relation(fields: [qualityId], references: [id])
+  production      ProductionInfo[]
+  yarnStock       YarnStockJobCard[]
+  packingLists    PackingList[]
+  deliveries      Delivery[]
+
+  @@map("customer_orders")
+  @@index([customerId])
+  @@index([qualityId])
+  @@index([jobCardNumber])
+  @@index([status])
+  @@index([deliveryDueDate])
+  @@index([deletedAt])
+}
+
+model ProductionInfo {
+  id              String    @id @default(cuid())
+  pieceNumber     String    @unique @map("piece_number")
+  jobCardId       String    @map("job_card_id")
+  weight          Decimal
+  productionDate  DateTime  @map("production_date")
+  productionTime  DateTime? @map("production_time")
+  machineNumber   String?   @map("machine_number")
+  employeeId      String?   @map("employee_id")
+  operatorName    String?   @map("operator_name")
+  qualityGrade    String?   @map("quality_grade")
+  defectType      String?   @map("defect_type")
+  notes           String?   @db.Text
+  archived        Boolean   @default(false)
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  jobCard          CustomerOrder     @relation(fields: [jobCardId], references: [id])
+  employee         Employee?         @relation(fields: [employeeId], references: [id])
+  packingListItems PackingListItem[]
+
+  @@map("production_information")
+  @@index([jobCardId])
+  @@index([employeeId])
+  @@index([productionDate])
+  @@index([archived])
+  @@index([deletedAt])
+}
+
+model YarnStockJobCard {
+  id               String    @id @default(cuid())
+  jobCardId        String    @map("job_card_id")
+  stockRefId       String    @map("stock_ref_id")
+  quantityReceived Decimal   @map("quantity_received")
+  quantityUsed     Decimal   @default(0) @map("quantity_used")
+  quantityLoss     Decimal   @default(0) @map("quantity_loss")
+  receivedDate     DateTime  @map("received_date")
+  lotNumber        String?   @map("lot_number")
+  notes            String?   @db.Text
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  jobCard   CustomerOrder       @relation(fields: [jobCardId], references: [id])
+  stockRef  YarnStockReference  @relation(fields: [stockRefId], references: [id])
+
+  @@map("yarn_stock_job_card")
+  @@index([jobCardId])
+  @@index([stockRefId])
+  @@index([deletedAt])
+}
+
+model YarnStockReference {
+  id                    String    @id @default(cuid())
+  stockReferenceNumber  String    @unique @map("stock_reference_number")
+  yarnTypeId            String    @map("yarn_type_id")
+  customerId            String?   @map("customer_id")
+  currentQuantity       Decimal   @map("current_quantity")
+  stockDate             DateTime  @map("stock_date")
+  status                String    @default("active")
+  notes                 String?   @db.Text
+  deletedAt             DateTime? @map("deleted_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  yarnType        YarnType           @relation(fields: [yarnTypeId], references: [id])
+  customer        Customer?          @relation(fields: [customerId], references: [id])
+  yarnStock       YarnStockJobCard[]
+  adjustments     StockAdjustment[]
+
+  @@map("yarn_stock_reference")
+  @@index([yarnTypeId])
+  @@index([customerId])
+  @@index([deletedAt])
+}
+
+model FabricQuality {
+  id              String    @id @default(cuid())
+  qualityCode     String    @unique @map("quality_code")
+  description     String?   @db.Text
+
+  // Legacy fields (keep for data preservation)
+  greigeDimensions   String?  @map("greige_dimensions")
+  finishedDimensions String?  @map("finished_dimensions")
+  greigeDensity      String?  @map("greige_density")
+  finishedDensity    String?  @map("finished_density")
+
+  // NEW: Greige (raw) fabric specifications
+  greigeWidth     Decimal?  @map("greige_width")
+  greigeWeight    Decimal?  @map("greige_weight")
+
+  // NEW: Finished fabric specifications
+  finishedWidth   Decimal?  @map("finished_width")
+  finishedWeight  Decimal?  @map("finished_weight")
+
+  // NEW: Processing
+  percentageLoss  Decimal?  @map("percentage_loss")
+  fabricType      String?   @map("fabric_type")
+  texCount        String?   @map("tex_count")
+
+  // Machine specs
+  width           Decimal?
+  weight          Decimal?
+  machineGauge    String?   @map("machine_gauge")
+  machineType     String?   @map("machine_type")
+  specSheetRef    String?   @map("spec_sheet_ref")
+  slittingRequired Boolean  @default(false) @map("slitting_required")
+
+  // System fields
+  active          Boolean   @default(true)
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  orders          CustomerOrder[]
+  fabricContent   FabricContent[]
+
+  @@map("fabric_quality")
+  @@index([deletedAt])
+}
+
+model FabricContent {
+  id              String    @id @default(cuid())
+  qualityId       String    @map("quality_id")
+  yarnTypeId      String    @map("yarn_type_id")
+  percentage      Decimal
+  position        Int
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  fabricQuality   FabricQuality @relation(fields: [qualityId], references: [id], onDelete: Cascade)
+  yarnType        YarnType      @relation(fields: [yarnTypeId], references: [id])
+
+  @@map("fabric_content")
+  @@index([qualityId])
+  @@index([yarnTypeId])
+}
+
+model PackingList {
+  id                String    @id @default(cuid())
+  packingListNumber String    @unique @map("packing_list_number")
+  jobCardId         String    @map("job_card_id")
+  packingDate       DateTime  @map("packing_date")
+  numberOfCartons   Int       @map("number_of_cartons")
+  totalGrossWeight  Decimal?  @map("total_gross_weight")
+  totalNetWeight    Decimal   @map("total_net_weight")
+  packingStatus     String    @default("pending") @map("packing_status")
+  packingNotes      String?   @db.Text @map("packing_notes")
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  jobCard    CustomerOrder     @relation(fields: [jobCardId], references: [id])
+  items      PackingListItem[]
+  deliveries Delivery[]
+
+  @@map("packing_list")
+  @@index([jobCardId])
+  @@index([packingDate])
+  @@index([deletedAt])
+}
+
+model PackingListItem {
+  id            String   @id @default(cuid())
+  packingListId String   @map("packing_list_id")
+  productionId  String   @map("production_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  packingList PackingList    @relation(fields: [packingListId], references: [id], onDelete: Cascade)
+  production  ProductionInfo @relation(fields: [productionId], references: [id])
+
+  @@map("packing_list_items")
+  @@index([packingListId])
+  @@index([productionId])
+}
+
+model Delivery {
+  id                    String    @id @default(cuid())
+  deliveryNoteNumber    String    @unique @map("delivery_note_number")
+  jobCardId             String    @map("job_card_id")
+  deliveryDate          DateTime? @map("delivery_date")
+  scheduledDeliveryDate DateTime? @map("scheduled_delivery_date")
+  deliveryMethod        String    @map("delivery_method")
+  deliveryAddress       String    @db.Text @map("delivery_address")
+  courierName           String?   @map("courier_name")
+  trackingNumber        String?   @map("tracking_number")
+  driverName            String?   @map("driver_name")
+  vehicleReg            String?   @map("vehicle_reg")
+  deliveryStatus        String    @default("pending") @map("delivery_status")
+  deliveryNotes         String?   @db.Text @map("delivery_notes")
+  deletedAt             DateTime? @map("deleted_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  jobCard      CustomerOrder @relation(fields: [jobCardId], references: [id])
+  packingLists PackingList[]
+
+  @@map("delivery")
+  @@index([jobCardId])
+  @@index([deliveryDate])
+  @@index([deliveryStatus])
+  @@index([deletedAt])
+}
+
+// ============================================================================
+// MANAGEMENT & REFERENCE MODELS
+// ============================================================================
+
+model Employee {
+  id            String    @id @default(cuid())
+  employeeCode  String    @unique @map("employee_code")
+  firstName     String    @map("first_name")
+  lastName      String    @map("last_name")
+  role          String?
+  contactNumber String?   @map("contact_number")
+  email         String?
+  hireDate      DateTime? @map("hire_date")
+  active        Boolean   @default(true)
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  production ProductionInfo[]
+
+  @@map("employees")
+  @@index([deletedAt])
+}
+
+model MachineSpecification {
+  id            String    @id @default(cuid())
+  machineNumber String    @unique @map("machine_number")
+  machineName   String    @map("machine_name")
+  machineType   String    @map("machine_type")
+  gauge         String?
+  diameter      Decimal?
+  feeders       Int?
+  maxSpeed      Decimal?  @map("max_speed")
+  status        String    @default("active")
+  notes         String?   @db.Text
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("machine_specifications")
+  @@index([deletedAt])
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  role           String    @default("standard")
+  supabaseUserId String?   @unique @map("supabase_user_id")
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  userLogs UserLog[]
+
+  @@map("users")
+}
+
+model UserLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  action    String
+  timestamp DateTime @default(now())
+  ipAddress String?  @map("ip_address")
+  metadata  Json?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_logs")
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model Customer {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  contactPerson String?   @map("contact_person")
+  phone         String?
+  fax           String?
+  cellphone     String?   @map("cellphone")
+  email         String?
+  address       String?   @db.Text
+  active        Boolean   @default(true)
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  orders        CustomerOrder[]
+  stockRefs     YarnStockReference[]
+
+  @@map("customers")
+  @@index([deletedAt])
+}
+
+model YarnType {
+  id           String    @id @default(cuid())
+  code         String    @unique
+  description  String?   @db.Text
+  material     String?
+  texCount     String?   @map("tex_count")
+  color        String?
+  supplierName String?   @map("supplier_name")
+  supplierCode String?   @map("supplier_code")
+  unitPrice    Decimal?  @map("unit_price")
+  active       Boolean   @default(true)
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  stockRefs     YarnStockReference[]
+  fabricContent FabricContent[]
+
+  @@map("yarn_types")
+  @@index([deletedAt])
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  category  String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+// ============================================================================
+// ARCHIVE MODELS
+// ============================================================================
+
+model ProdInfoArchive {
+  id             String   @id @default(cuid())
+  originalId     String   @map("original_id")
+  pieceNumber    String   @map("piece_number")
+  jobCardNumber  String   @map("job_card_number")
+  weight         Decimal
+  productionDate DateTime @map("production_date")
+  archivedDate   DateTime @default(now()) @map("archived_date")
+  archiveData    Json     @map("archive_data")
+
+  @@map("prod_info_archive")
+  @@index([jobCardNumber])
+  @@index([archivedDate])
+}
+
+model StockAdjustment {
+  id             String   @id @default(cuid())
+  adjustmentNumber String @unique @map("adjustment_number")
+  stockRefId     String   @map("stock_ref_id")
+  adjustmentType String   @map("adjustment_type")
+  quantity       Decimal
+  reason         String?  @db.Text
+  adjustedBy     String   @map("adjusted_by")
+  adjustmentDate DateTime @map("adjustment_date")
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  stockRef YarnStockReference @relation(fields: [stockRefId], references: [id])
+
+  @@map("stock_adjustments")
+  @@index([stockRefId])
+  @@index([adjustmentDate])
+}
+
+// ============================================================================
+// PRINT/REPORT MODELS
+// ============================================================================
+
+model PrintCustOrders {
+  id            String   @id @default(cuid())
+  orderId       String   @map("order_id")
+  formattedData Json     @map("formatted_data")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("print_cust_orders")
+}
+
+model PrintJobCard {
+  id            String   @id @default(cuid())
+  jobCardId     String   @map("job_card_id")
+  formattedData Json     @map("formatted_data")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("print_job_card")
+}
+
+model PrintPackInfo {
+  id            String   @id @default(cuid())
+  packInfoId    String   @map("pack_info_id")
+  formattedData Json     @map("formatted_data")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("print_pack_info")
+}
+
+model PrintProdInfo {
+  id            String   @id @default(cuid())
+  productionId  String   @map("production_id")
+  formattedData Json     @map("formatted_data")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("print_prod_info")
+}
+
+model PrintYarnDetail {
+  id            String   @id @default(cuid())
+  yarnStockId   String   @map("yarn_stock_id")
+  formattedData Json     @map("formatted_data")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("print_yarn_detail")
+}
+
+model PrintYarnInfo {
+  id            String   @id @default(cuid())
+  stockRefId    String   @map("stock_ref_id")
+  formattedData Json     @map("formatted_data")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("print_yarn_info")
+}
+
+model PrintYarnMod {
+  id            String   @id @default(cuid())
+  yarnTypeId    String   @map("yarn_type_id")
+  formattedData Json     @map("formatted_data")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("print_yarn_mod")
+}
