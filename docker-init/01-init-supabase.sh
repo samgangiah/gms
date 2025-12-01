@@ -39,6 +39,17 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE SCHEMA IF NOT EXISTS extensions;
     GRANT USAGE ON SCHEMA extensions TO anon, authenticated, service_role;
 
+    -- Grant permissions on public schema (CRITICAL for migrations)
+    GRANT ALL ON SCHEMA public TO supabase_auth_admin;
+    GRANT ALL ON SCHEMA public TO supabase_storage_admin;
+    GRANT CREATE ON SCHEMA public TO supabase_auth_admin;
+    GRANT CREATE ON SCHEMA public TO supabase_storage_admin;
+
+    -- Grant permissions on existing objects in public schema
+    GRANT ALL ON ALL TABLES IN SCHEMA public TO supabase_auth_admin;
+    GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO supabase_auth_admin;
+    GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO supabase_auth_admin;
+
     -- Enable required PostgreSQL extensions
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
     CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
