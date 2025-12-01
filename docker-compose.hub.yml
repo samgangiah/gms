@@ -37,31 +37,31 @@ services:
       -c config_file=/etc/postgresql/postgresql.conf
       -c log_min_messages=fatal
 
-  # Kong API Gateway
-  kong:
-    image: public.ecr.aws/supabase/kong:2.8.1
-    container_name: gms-kong
-    restart: unless-stopped
-    environment:
-      KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: /home/kong/temp_config.yml
-      KONG_DNS_ORDER: LAST,A,CNAME
-      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth,http-log
-      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
-      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
-      SUPABASE_ANON_KEY: ${ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
-      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-supabase}
-      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-supabase}
-    ports:
-      - "8000:8000"
-    networks:
-      - gilnokie-network
-    depends_on:
-      - auth
-      - rest
-      - realtime
-      - storage
+  # Kong API Gateway - Disabled (app connects to auth/DB directly)
+  # kong:
+  #   image: public.ecr.aws/supabase/kong:2.8.1
+  #   container_name: gms-kong
+  #   restart: unless-stopped
+  #   environment:
+  #     KONG_DATABASE: "off"
+  #     KONG_DECLARATIVE_CONFIG: /home/kong/temp_config.yml
+  #     KONG_DNS_ORDER: LAST,A,CNAME
+  #     KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth,http-log
+  #     KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+  #     KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+  #     SUPABASE_ANON_KEY: ${ANON_KEY}
+  #     SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+  #     DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-supabase}
+  #     DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-supabase}
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - gilnokie-network
+  #   depends_on:
+  #     - auth
+  #     - rest
+  #     - realtime
+  #     - storage
 
   # Auth, REST, Realtime, Storage, etc. (same as docker-compose.yml)
   auth:
@@ -116,31 +116,34 @@ services:
       db:
         condition: service_healthy
 
-  realtime:
-    image: public.ecr.aws/supabase/realtime:v2.63.0
-    container_name: gms-realtime
-    restart: unless-stopped
-    environment:
-      PORT: 4000
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: supabase_admin
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      DB_NAME: ${POSTGRES_DB:-postgres}
-      DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
-      DB_ENC_KEY: supabaserealtime
-      API_JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters-long}
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq}
-      ERL_AFLAGS: -proto_dist inet_tcp
-      ENABLE_TAILSCALE: "false"
-      DNS_NODES: "''"
-    networks:
-      - gilnokie-network
-    depends_on:
-      db:
-        condition: service_healthy
-    command: >
-      sh -c "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"
+  # Realtime - Disabled (not needed for basic app functionality)
+  # Uncomment if you need real-time subscriptions
+  # realtime:
+  #   image: public.ecr.aws/supabase/realtime:v2.63.0
+  #   container_name: gms-realtime
+  #   restart: unless-stopped
+  #   environment:
+  #     PORT: 4000
+  #     DB_HOST: db
+  #     DB_PORT: 5432
+  #     DB_USER: supabase_admin
+  #     DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  #     DB_NAME: ${POSTGRES_DB:-postgres}
+  #     DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
+  #     DB_ENC_KEY: supabaserealtime
+  #     API_JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters-long}
+  #     SECRET_KEY_BASE: ${SECRET_KEY_BASE:-UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq}
+  #     ERL_AFLAGS: -proto_dist inet_tcp
+  #     ENABLE_TAILSCALE: "false"
+  #     DNS_NODES: "''"
+  #     RLIMIT_NOFILE: 65536
+  #   networks:
+  #     - gilnokie-network
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   command: >
+  #     sh -c "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"
 
   storage:
     image: public.ecr.aws/supabase/storage-api:v1.29.0
@@ -239,13 +242,14 @@ services:
       interval: 5s
       retries: 3
 
-  vector:
-    image: public.ecr.aws/supabase/vector:0.28.1-alpine
-    container_name: gms-vector
-    restart: unless-stopped
-    networks:
-      - gilnokie-network
-    command: ["--config", "etc/vector/vector.yml"]
+  # Vector - Disabled (not needed for basic app functionality)
+  # vector:
+  #   image: public.ecr.aws/supabase/vector:0.28.1-alpine
+  #   container_name: gms-vector
+  #   restart: unless-stopped
+  #   networks:
+  #     - gilnokie-network
+  #   command: ["--config", "etc/vector/vector.yml"]
 
   # ============================================
   # YOUR NEXT.JS APPLICATION (PRE-BUILT IMAGE)
@@ -259,13 +263,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      kong:
+      auth:
         condition: service_started
     environment:
       NODE_ENV: production
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}?schema=public
       DIRECT_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}?schema=public
-      NEXT_PUBLIC_SUPABASE_URL: http://kong:8000
+      NEXT_PUBLIC_SUPABASE_URL: http://auth:9999
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
     networks:
