@@ -65,7 +65,7 @@ services:
 
   # Auth, REST, Realtime, Storage, etc. (same as docker-compose.yml)
   auth:
-    image: public.ecr.aws/supabase/gotrue:v2.182.1
+    image: public.ecr.aws/supabase/gotrue:v2.99.0
     container_name: gms-auth
     restart: unless-stopped
     environment:
@@ -92,19 +92,13 @@ services:
       GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+    ports:
+      - "9999:9999"
     networks:
       - gilnokie-network
-      - proxy
     depends_on:
       db:
         condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.gms-auth.rule=Host(`gms.digitalrain.cloud`) && PathPrefix(`/auth`)"
-      - "traefik.http.routers.gms-auth.entrypoints=websecure"
-      - "traefik.http.routers.gms-auth.tls.certresolver=myresolver"
-      - "traefik.http.services.gms-auth.loadbalancer.server.port=9999"
-      - "traefik.docker.network=proxy"
 
   rest:
     image: public.ecr.aws/supabase/postgrest:v13.0.7
@@ -225,18 +219,12 @@ services:
       SUPABASE_PUBLIC_URL: https://gms.digitalrain.cloud
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+    ports:
+      - "3001:3000"
     networks:
       - gilnokie-network
-      - proxy
     depends_on:
       - meta
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.supabase-studio.rule=Host(`studio.gms.digitalrain.cloud`)"
-      - "traefik.http.routers.supabase-studio.entrypoints=websecure"
-      - "traefik.http.routers.supabase-studio.tls.certresolver=myresolver"
-      - "traefik.http.services.supabase-studio.loadbalancer.server.port=3000"
-      - "traefik.docker.network=proxy"
 
   mailpit:
     image: public.ecr.aws/supabase/mailpit:v1.22.3
@@ -277,21 +265,15 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}?schema=public
       DIRECT_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}?schema=public
-      NEXT_PUBLIC_SUPABASE_URL: https://gms.digitalrain.cloud/auth
+      NEXT_PUBLIC_SUPABASE_URL: https://gms.digitalrain.cloud
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+    ports:
+      - "3000:3000"
     networks:
       - gilnokie-network
-      - proxy
     volumes:
       - ./gilnokie-app/prisma:/app/prisma
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.gilnokie.rule=Host(`${DOMAIN:-gms.digitalrain.cloud}`)"
-      - "traefik.http.routers.gilnokie.entrypoints=websecure"
-      - "traefik.http.routers.gilnokie.tls.certresolver=myresolver"
-      - "traefik.http.services.gilnokie.loadbalancer.server.port=3000"
-      - "traefik.docker.network=proxy"
 
 volumes:
   db_data:
@@ -304,5 +286,3 @@ volumes:
 networks:
   gilnokie-network:
     driver: bridge
-  proxy:
-    external: true
