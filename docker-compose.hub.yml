@@ -94,9 +94,17 @@ services:
       GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
     networks:
       - gilnokie-network
+      - proxy
     depends_on:
       db:
         condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gms-auth.rule=Host(`gms.digitalrain.cloud`) && PathPrefix(`/auth`)"
+      - "traefik.http.routers.gms-auth.entrypoints=websecure"
+      - "traefik.http.routers.gms-auth.tls.certresolver=myresolver"
+      - "traefik.http.services.gms-auth.loadbalancer.server.port=9999"
+      - "traefik.docker.network=proxy"
 
   rest:
     image: public.ecr.aws/supabase/postgrest:v13.0.7
@@ -269,7 +277,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}?schema=public
       DIRECT_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}?schema=public
-      NEXT_PUBLIC_SUPABASE_URL: http://auth:9999
+      NEXT_PUBLIC_SUPABASE_URL: https://gms.digitalrain.cloud/auth
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
     networks:
