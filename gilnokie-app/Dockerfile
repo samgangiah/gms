@@ -58,6 +58,7 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
 COPY --from=builder /app/prisma ./prisma
 
 # Create startup script for migrations
@@ -65,7 +66,7 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'set -e' >> /app/start.sh && \
     echo 'if [ "$RUN_MIGRATIONS" = "true" ]; then' >> /app/start.sh && \
     echo '  echo "Running database migrations..."' >> /app/start.sh && \
-    echo '  npx prisma migrate deploy' >> /app/start.sh && \
+    echo '  ./node_modules/.bin/prisma migrate deploy' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     echo 'exec node server.js' >> /app/start.sh && \
     chmod +x /app/start.sh
