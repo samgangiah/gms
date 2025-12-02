@@ -2,6 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Package, ClipboardList, Factory } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 
+// Force dynamic rendering - don't try to build this page statically
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function DashboardPage() {
   // Fetch dashboard statistics
   const [customersCount, yarnTypesCount, activeJobCards, productionToday] =
