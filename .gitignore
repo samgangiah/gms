@@ -20,6 +20,10 @@ SourceDataFromWade/
 # Working files and development notes
 _working/
 
+# Archive (old deployment configurations)
+# Uncomment if you want to exclude from git:
+# _archive/
+
 # BMAD AI framework files
 .claude/
 .cursor/
