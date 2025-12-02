@@ -11,6 +11,8 @@ Old manual Docker deployment files:
 - `docker-compose.simple.yml` - Simplified deployment configuration
 - `docker-init/` - Database initialization scripts for Supabase
 - `.env.production` - Old production environment variables (not used with Coolify)
+- `build-and-push.sh` - Script to build and push images to Docker Hub
+- `build-check.sh` - Script to monitor Docker build progress on VPS
 - Various deployment guides (DOCKER_HUB_DEPLOY.md, VPS_SSH_SETUP.md, etc.)
 
 ### old-docs/
