@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,12 +42,10 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          <Image
+          <img
             src="/GIlnokie_Logo.webp"
             alt="Gilnokie Logo"
             width={200}
-            height={80}
-            priority
             className="mb-4"
           />
           <CardTitle className="text-2xl font-bold">Gilnokie Textile System</CardTitle>
