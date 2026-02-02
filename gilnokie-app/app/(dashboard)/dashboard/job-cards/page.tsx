@@ -67,7 +67,7 @@ export default function JobCardsPage() {
   const filteredJobCards = data?.filter(
     (jobCard) =>
       jobCard.jobCardNumber.toLowerCase().includes(search.toLowerCase()) ||
-      jobCard.customer.name.toLowerCase().includes(search.toLowerCase()) ||
+      jobCard.customer?.name?.toLowerCase().includes(search.toLowerCase()) ||
       jobCard.stockReference.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -157,8 +157,8 @@ export default function JobCardsPage() {
                   <TableCell className="font-medium">
                     {jobCard.jobCardNumber}
                   </TableCell>
-                  <TableCell>{jobCard.customer.name}</TableCell>
-                  <TableCell>{jobCard.fabricQuality.qualityCode}</TableCell>
+                  <TableCell>{jobCard.customer?.name ?? 'Unknown'}</TableCell>
+                  <TableCell>{jobCard.fabricQuality?.qualityCode ?? 'N/A'}</TableCell>
                   <TableCell>{formatDate(jobCard.orderDate)}</TableCell>
                   <TableCell>{formatWeight(jobCard.quantityRequired)}</TableCell>
                   <TableCell>

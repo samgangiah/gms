@@ -149,6 +149,7 @@ export default function NewJobCardPage() {
         body: JSON.stringify({
           ...data,
           quantityRequired: parseFloat(data.quantityRequired) || 0,
+          rollCount: data.rollCount ? parseInt(data.rollCount, 10) : null,
         }),
       });
       if (!res.ok) {

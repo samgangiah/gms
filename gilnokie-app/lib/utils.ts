@@ -20,20 +20,36 @@ export function formatDate(date: string | Date): string {
 
 /**
  * Format weight in kilograms
- * @param weight - Weight value (number or Decimal)
+ * @param weight - Weight value (number, string, or Decimal)
  * @returns Formatted weight string (e.g., "123.45 kg")
  */
-export function formatWeight(weight: number | { toNumber: () => number }): string {
-  const value = typeof weight === 'number' ? weight : weight.toNumber();
+export function formatWeight(weight: number | string | { toNumber: () => number } | null | undefined): string {
+  if (weight === null || weight === undefined) return '0.00 kg';
+  let value: number;
+  if (typeof weight === 'number') {
+    value = weight;
+  } else if (typeof weight === 'string') {
+    value = parseFloat(weight) || 0;
+  } else {
+    value = weight.toNumber();
+  }
   return `${value.toFixed(2)} kg`;
 }
 
 /**
  * Format currency in South African Rand
- * @param amount - Amount value (number or Decimal)
+ * @param amount - Amount value (number, string, or Decimal)
  * @returns Formatted currency string (e.g., "R 1,234.56")
  */
-export function formatCurrency(amount: number | { toNumber: () => number }): string {
-  const value = typeof amount === 'number' ? amount : amount.toNumber();
+export function formatCurrency(amount: number | string | { toNumber: () => number } | null | undefined): string {
+  if (amount === null || amount === undefined) return 'R 0.00';
+  let value: number;
+  if (typeof amount === 'number') {
+    value = amount;
+  } else if (typeof amount === 'string') {
+    value = parseFloat(amount) || 0;
+  } else {
+    value = amount.toNumber();
+  }
   return `R ${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 }
