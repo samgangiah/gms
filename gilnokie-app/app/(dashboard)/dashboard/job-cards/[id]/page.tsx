@@ -336,7 +336,9 @@ export default async function JobCardDetailPage({
                     Yarn allocated to this job card
                   </CardDescription>
                 </div>
-                <Button>Allocate Yarn</Button>
+<Link href={`/dashboard/yarn-stock/allocate?jobCardId=${id}`}>
+                  <Button>Allocate Yarn</Button>
+                </Link>
               </div>
             </CardHeader>
             <CardContent>
