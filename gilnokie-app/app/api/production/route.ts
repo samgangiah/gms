@@ -91,13 +91,24 @@ export async function POST(request: NextRequest) {
     const jobNumber = jobNumberMatch ? jobNumberMatch[1].padStart(5, '0') : '00001';
     const pieceNumber = `${year}${jobNumber}-${String(pieceCount + 1).padStart(3, '0')}`;
 
+    // Combine date and time into proper DateTime for productionTime
+    let productionTimeDate: Date | null = null;
+    if (body.productionTime && body.productionDate) {
+      // productionTime is in format "HH:mm" (e.g., "15:52")
+      productionTimeDate = new Date(`${body.productionDate}T${body.productionTime}:00`);
+      // Check if the date is valid
+      if (isNaN(productionTimeDate.getTime())) {
+        productionTimeDate = null;
+      }
+    }
+
     const production = await prisma.productionInfo.create({
       data: {
         pieceNumber,
         jobCardId: body.jobCardId,
         weight: body.weight,
         productionDate: new Date(body.productionDate),
-        productionTime: body.productionTime ? new Date(body.productionTime) : null,
+        productionTime: productionTimeDate,
         machineNumber: body.machineNumber || null,
         operatorName: body.operatorName || null,
         qualityGrade: body.qualityGrade || null,
