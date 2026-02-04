@@ -191,7 +191,9 @@ export default function NewProductionEntryPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {loadingJobCards ? (
-                        <SelectItem value="" disabled>Loading...</SelectItem>
+                        <SelectItem value="__loading__" disabled>Loading...</SelectItem>
+                      ) : activeJobCards?.length === 0 ? (
+                        <SelectItem value="__empty__" disabled>No active job cards</SelectItem>
                       ) : (
                         activeJobCards?.map((jobCard) => (
                           <SelectItem key={jobCard.id} value={jobCard.id}>

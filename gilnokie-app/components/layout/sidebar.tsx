@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Users,
+  UserRoundCog,
+  Settings2,
   Package,
   Shirt,
   ClipboardList,
@@ -26,6 +28,16 @@ const navigation = [
     name: 'Customers',
     href: '/dashboard/customers',
     icon: Users,
+  },
+  {
+    name: 'Employees',
+    href: '/dashboard/employees',
+    icon: UserRoundCog,
+  },
+  {
+    name: 'Machines',
+    href: '/dashboard/machines',
+    icon: Settings2,
   },
   {
     name: 'Yarn Types',
