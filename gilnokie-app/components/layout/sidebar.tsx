@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Factory,
   Warehouse,
+  Layers,
   PackageCheck,
   Truck,
   FileText,
@@ -63,6 +64,11 @@ const navigation = [
     name: 'Yarn Stock',
     href: '/dashboard/yarn-stock',
     icon: Warehouse,
+  },
+  {
+    name: 'Stock References',
+    href: '/dashboard/stock-references',
+    icon: Layers,
   },
   {
     name: 'Packing & Delivery',

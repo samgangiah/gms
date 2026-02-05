@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate, formatWeight, formatCurrency } from '@/lib/utils';
 import { ArrowLeft, Edit, FileText, Printer } from 'lucide-react';
 import Link from 'next/link';
+import { JobCardStatusChange } from '@/components/job-card-status-change';
 
 export default async function JobCardDetailPage({
   params,
@@ -94,13 +95,15 @@ export default async function JobCardDetailPage({
             </Button>
           </Link>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">
                 {jobCard.jobCardNumber}
               </h1>
-              <Badge variant={getStatusColor(jobCard.status)}>
-                {jobCard.status.replace('_', ' ').toUpperCase()}
-              </Badge>
+              <JobCardStatusChange
+                jobCardId={jobCard.id}
+                currentStatus={jobCard.status as any}
+                jobCardNumber={jobCard.jobCardNumber}
+              />
             </div>
             <p className="text-muted-foreground">
               {jobCard.customer.name} | {jobCard.fabricQuality.qualityCode}

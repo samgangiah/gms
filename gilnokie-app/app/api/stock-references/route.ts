@@ -93,6 +93,7 @@ export async function POST(request: Request) {
         stockReferenceNumber,
         yarnTypeId,
         currentQuantity: parseFloat(currentQuantity),
+        stockDate: new Date(),
         notes: notes || null,
       },
       include: {

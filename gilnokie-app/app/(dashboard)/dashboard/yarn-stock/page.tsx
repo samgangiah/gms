@@ -32,7 +32,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Search, Edit, Trash2, Package } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Package, PlusCircle } from 'lucide-react';
 import { formatDate, formatWeight } from '@/lib/utils';
 
 type YarnType = {
@@ -77,6 +77,12 @@ export default function YarnStockPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [isCreateStockRefOpen, setIsCreateStockRefOpen] = useState(false);
+  const [newStockRefData, setNewStockRefData] = useState({
+    yarnTypeId: '',
+    initialQuantity: '',
+    notes: '',
+  });
   const [formData, setFormData] = useState({
     jobCardId: '',
     stockRefId: '',
@@ -120,6 +126,17 @@ export default function YarnStockPage() {
       if (!res.ok) throw new Error('Failed to fetch stock references');
       const json = await res.json();
       return json.data as StockReference[];
+    },
+  });
+
+  // Fetch yarn types for quick-add stock reference
+  const { data: yarnTypes } = useQuery({
+    queryKey: ['yarn-types'],
+    queryFn: async () => {
+      const res = await fetch('/api/yarn-types');
+      if (!res.ok) throw new Error('Failed to fetch yarn types');
+      const json = await res.json();
+      return json.data as YarnType[];
     },
   });
 
@@ -195,6 +212,35 @@ export default function YarnStockPage() {
     },
   });
 
+  // Create stock reference mutation (quick-add)
+  const createStockRefMutation = useMutation({
+    mutationFn: async (data: { yarnTypeId: string; initialQuantity: number; notes?: string }) => {
+      const res = await fetch('/api/stock-references', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to create stock reference');
+      }
+      return res.json();
+    },
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['stock-references'] });
+      toast.success('Stock reference created successfully');
+      // Auto-select the newly created stock reference
+      if (response.data?.id) {
+        setFormData({ ...formData, stockRefId: response.data.id });
+      }
+      setIsCreateStockRefOpen(false);
+      setNewStockRefData({ yarnTypeId: '', initialQuantity: '', notes: '' });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       jobCardId: '',
@@ -208,6 +254,22 @@ export default function YarnStockPage() {
     });
     setIsEditMode(false);
     setEditingId(null);
+  };
+
+  const handleCreateStockRef = () => {
+    if (!newStockRefData.yarnTypeId) {
+      toast.error('Please select a yarn type');
+      return;
+    }
+    if (!newStockRefData.initialQuantity || parseFloat(newStockRefData.initialQuantity) <= 0) {
+      toast.error('Please enter a valid initial quantity');
+      return;
+    }
+    createStockRefMutation.mutate({
+      yarnTypeId: newStockRefData.yarnTypeId,
+      initialQuantity: parseFloat(newStockRefData.initialQuantity),
+      notes: newStockRefData.notes || undefined,
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -496,24 +558,37 @@ export default function YarnStockPage() {
                   <Label htmlFor="stockRefId">
                     Stock Reference <span className="text-destructive">*</span>
                   </Label>
-                  <Select
-                    value={formData.stockRefId}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, stockRefId: value })
-                    }
-                    disabled={isEditMode}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select stock reference" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stockRefs?.map((ref) => (
-                        <SelectItem key={ref.id} value={ref.id}>
-                          {ref.stockReferenceNumber} - {ref.yarnType.code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select
+                      value={formData.stockRefId}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, stockRefId: value })
+                      }
+                      disabled={isEditMode}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select stock reference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {stockRefs?.map((ref) => (
+                          <SelectItem key={ref.id} value={ref.id}>
+                            {ref.stockReferenceNumber} - {ref.yarnType.code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {!isEditMode && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsCreateStockRefOpen(true)}
+                        title="Create new stock reference"
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -625,6 +700,88 @@ export default function YarnStockPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick-Add Stock Reference Dialog */}
+      <Dialog open={isCreateStockRefOpen} onOpenChange={setIsCreateStockRefOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Stock Reference</DialogTitle>
+            <DialogDescription>
+              Quickly create a new stock reference for yarn allocation
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="yarnTypeId">
+                Yarn Type <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={newStockRefData.yarnTypeId}
+                onValueChange={(value) =>
+                  setNewStockRefData({ ...newStockRefData, yarnTypeId: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select yarn type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yarnTypes?.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>
+                      {type.code} {type.description && `- ${type.description}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="initialQuantity">
+                Initial Quantity (kg) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="initialQuantity"
+                type="number"
+                step="0.01"
+                value={newStockRefData.initialQuantity}
+                onChange={(e) =>
+                  setNewStockRefData({ ...newStockRefData, initialQuantity: e.target.value })
+                }
+                placeholder="0.00"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="stockRefNotes">Notes</Label>
+              <Textarea
+                id="stockRefNotes"
+                value={newStockRefData.notes}
+                onChange={(e) =>
+                  setNewStockRefData({ ...newStockRefData, notes: e.target.value })
+                }
+                rows={2}
+                placeholder="Optional notes..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsCreateStockRefOpen(false);
+                setNewStockRefData({ yarnTypeId: '', initialQuantity: '', notes: '' });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCreateStockRef}
+              disabled={createStockRefMutation.isPending}
+            >
+              {createStockRefMutation.isPending ? 'Creating...' : 'Create Stock Reference'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
