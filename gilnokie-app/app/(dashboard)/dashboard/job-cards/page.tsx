@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Plus, Search, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { formatDate, formatWeight } from '@/lib/utils';
+import { formatDate, formatWeightWithMeters } from '@/lib/utils';
 import Link from 'next/link';
 import {
   Select,
@@ -38,6 +38,7 @@ type JobCard = {
   };
   fabricQuality: {
     qualityCode: string;
+    metersPerKg: number | null;
   };
   _count: {
     production: number;
@@ -160,7 +161,7 @@ export default function JobCardsPage() {
                   <TableCell>{jobCard.customer?.name ?? 'Unknown'}</TableCell>
                   <TableCell>{jobCard.fabricQuality?.qualityCode ?? 'N/A'}</TableCell>
                   <TableCell>{formatDate(jobCard.orderDate)}</TableCell>
-                  <TableCell>{formatWeight(jobCard.quantityRequired)}</TableCell>
+                  <TableCell>{formatWeightWithMeters(jobCard.quantityRequired, jobCard.fabricQuality?.metersPerKg)}</TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
                       {jobCard._count.production} pieces

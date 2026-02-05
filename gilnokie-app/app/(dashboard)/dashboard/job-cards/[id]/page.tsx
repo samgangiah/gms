@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatDate, formatWeight, formatCurrency } from '@/lib/utils';
+import { formatDate, formatWeight, formatWeightWithMeters, formatCurrency } from '@/lib/utils';
 import { ArrowLeft, Edit, FileText, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { JobCardStatusChange } from '@/components/job-card-status-change';
@@ -136,7 +136,7 @@ export default async function JobCardDetailPage({
             <div className="flex justify-between text-sm">
               <span>Progress</span>
               <span className="font-medium">
-                {formatWeight(totalProduced)} / {formatWeight(jobCard.quantityRequired)}
+                {formatWeightWithMeters(totalProduced, jobCard.fabricQuality.metersPerKg)} / {formatWeightWithMeters(jobCard.quantityRequired, jobCard.fabricQuality.metersPerKg)}
               </span>
             </div>
             <div className="w-full bg-secondary rounded-full h-2">
@@ -157,8 +157,9 @@ export default async function JobCardDetailPage({
               <div>
                 <p className="text-xs text-muted-foreground">Remaining</p>
                 <p className="text-2xl font-bold">
-                  {formatWeight(
-                    Math.max(0, jobCard.quantityRequired.toNumber() - totalProduced)
+                  {formatWeightWithMeters(
+                    Math.max(0, jobCard.quantityRequired.toNumber() - totalProduced),
+                    jobCard.fabricQuality.metersPerKg
                   )}
                 </p>
               </div>
@@ -231,7 +232,7 @@ export default async function JobCardDetailPage({
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Quantity Required</p>
-                  <p className="font-medium">{formatWeight(jobCard.quantityRequired)}</p>
+                  <p className="font-medium">{formatWeightWithMeters(jobCard.quantityRequired, jobCard.fabricQuality.metersPerKg)}</p>
                 </div>
                 {jobCard.machineAssigned && (
                   <div>

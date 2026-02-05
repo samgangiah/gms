@@ -227,6 +227,9 @@ model FabricQuality {
   fabricType      String?   @map("fabric_type")
   texCount        String?   @map("tex_count")
 
+  // Conversion factor: how many meters per 1 kg of this fabric
+  metersPerKg     Decimal?  @map("meters_per_kg")
+
   // Machine specs
   width           Decimal?
   weight          Decimal?

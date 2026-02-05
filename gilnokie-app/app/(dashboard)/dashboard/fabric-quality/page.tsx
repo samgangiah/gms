@@ -39,6 +39,7 @@ type FabricQuality = {
   machineType: string | null;
   slittingRequired: boolean;
   active: boolean;
+  metersPerKg: number | null;
 };
 
 export default function FabricQualityPage() {
@@ -57,6 +58,7 @@ export default function FabricQualityPage() {
     machineGauge: '',
     machineType: '',
     specSheetRef: '',
+    metersPerKg: '',
     slittingRequired: false,
     active: true,
   });
@@ -82,6 +84,7 @@ export default function FabricQualityPage() {
           ...data,
           width: data.width ? parseFloat(data.width) : null,
           weight: data.weight ? parseFloat(data.weight) : null,
+          metersPerKg: data.metersPerKg ? parseFloat(data.metersPerKg) : null,
         }),
       });
       if (!res.ok) {
@@ -110,6 +113,7 @@ export default function FabricQualityPage() {
           ...data,
           width: data.width ? parseFloat(data.width) : null,
           weight: data.weight ? parseFloat(data.weight) : null,
+          metersPerKg: data.metersPerKg ? parseFloat(data.metersPerKg) : null,
         }),
       });
       if (!res.ok) {
@@ -159,6 +163,7 @@ export default function FabricQualityPage() {
       machineGauge: '',
       machineType: '',
       specSheetRef: '',
+      metersPerKg: '',
       slittingRequired: false,
       active: true,
     });
@@ -188,6 +193,7 @@ export default function FabricQualityPage() {
       machineGauge: quality.machineGauge || '',
       machineType: quality.machineType || '',
       specSheetRef: '',
+      metersPerKg: quality.metersPerKg?.toString() || '',
       slittingRequired: quality.slittingRequired,
       active: quality.active,
     });
@@ -396,6 +402,24 @@ export default function FabricQualityPage() {
                     }
                   />
                 </div>
+              </div>
+              <div className="grid gap-2 p-3 border rounded-md bg-muted/30">
+                <Label htmlFor="metersPerKg" className="text-base font-semibold">
+                  Meters per Kilogram
+                </Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Conversion factor for calculating meters from kg. Used to display customer-friendly quantities.
+                </p>
+                <Input
+                  id="metersPerKg"
+                  type="number"
+                  step="0.01"
+                  value={formData.metersPerKg}
+                  onChange={(e) =>
+                    setFormData({ ...formData, metersPerKg: e.target.value })
+                  }
+                  placeholder="e.g., 2.5 means 1kg = 2.5 meters"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
