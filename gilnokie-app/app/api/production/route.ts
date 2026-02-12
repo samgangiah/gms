@@ -80,16 +80,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Count existing pieces for this job card
-    const pieceCount = await prisma.productionInfo.count({
-      where: { jobCardId: body.jobCardId },
-    });
-
     // Extract year and job number from job card number (JC-YYYYMMDD-XXX)
     const year = new Date().getFullYear().toString().slice(-2);
     const jobNumberMatch = jobCard.jobCardNumber.match(/-(\d+)$/);
     const jobNumber = jobNumberMatch ? jobNumberMatch[1].padStart(5, '0') : '00001';
-    const pieceNumber = `${year}${jobNumber}-${String(pieceCount + 1).padStart(3, '0')}`;
+    const piecePrefix = `${year}${jobNumber}-`;
+
+    // Find the highest existing piece number for this prefix to avoid race conditions
+    const lastPiece = await prisma.productionInfo.findFirst({
+      where: {
+        pieceNumber: { startsWith: piecePrefix },
+      },
+      orderBy: { pieceNumber: 'desc' },
+      select: { pieceNumber: true },
+    });
+
+    let nextNumber = 1;
+    if (lastPiece) {
+      const match = lastPiece.pieceNumber.match(/-(\d+)$/);
+      if (match) {
+        nextNumber = parseInt(match[1], 10) + 1;
+      }
+    }
+
+    const pieceNumber = `${piecePrefix}${String(nextNumber).padStart(3, '0')}`;
 
     // Combine date and time into proper DateTime for productionTime
     let productionTimeDate: Date | null = null;
