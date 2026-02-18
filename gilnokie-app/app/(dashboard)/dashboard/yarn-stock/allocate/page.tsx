@@ -253,9 +253,9 @@ export default function AllocateYarnPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {loadingJobCards ? (
-                        <SelectItem value="" disabled>Loading...</SelectItem>
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
                       ) : (
-                        jobCards?.map((jobCard) => (
+                        jobCards?.filter((jobCard) => jobCard.id).map((jobCard) => (
                           <SelectItem key={jobCard.id} value={jobCard.id}>
                             {jobCard.jobCardNumber} - {jobCard.customer?.name || 'Unknown'} ({jobCard.fabricQuality?.qualityCode || 'N/A'})
                           </SelectItem>
@@ -280,9 +280,9 @@ export default function AllocateYarnPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {loadingStockRefs ? (
-                        <SelectItem value="" disabled>Loading...</SelectItem>
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
                       ) : (
-                        stockRefs?.map((ref) => {
+                        stockRefs?.filter((ref) => ref.id).map((ref) => {
                           const qty = typeof ref.currentQuantity === 'string'
                             ? parseFloat(ref.currentQuantity)
                             : ref.currentQuantity;
