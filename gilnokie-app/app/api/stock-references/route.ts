@@ -50,14 +50,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    console.log('Stock reference POST body:', JSON.stringify(body));
+    
     const {
       yarnTypeId,
       currentQuantity,
       notes,
     } = body;
 
+    console.log('Parsed fields - yarnTypeId:', yarnTypeId, 'currentQuantity:', currentQuantity);
+
     // Validate required fields
     if (!yarnTypeId || currentQuantity === undefined) {
+      console.log('Validation failed - yarnTypeId:', !!yarnTypeId, 'currentQuantity:', currentQuantity !== undefined);
       return NextResponse.json(
         { error: 'Missing required fields: yarnTypeId, currentQuantity' },
         { status: 400 }

@@ -1,0 +1,207 @@
+{
+  "generatedFrom": "corpclo.mdb historical data",
+  "totalRollsAnalyzed": 38451,
+  "totalWeightKgAnalyzed": 1568377.95,
+  "conversionFactors": [
+    {
+      "qualityCode": "PD 600",
+      "totalRollsHistorical": 23606,
+      "totalWeightKg": 982909.6,
+      "avgRollWeightKg": 41.64,
+      "minRollWeightKg": 1.34,
+      "maxRollWeightKg": 816.28,
+      "rollsPer1000Kg": 24.0,
+      "kilosPerRoll": 41.64
+    },
+    {
+      "qualityCode": "MED102",
+      "totalRollsHistorical": 4754,
+      "totalWeightKg": 198593.37,
+      "avgRollWeightKg": 41.77,
+      "minRollWeightKg": 14.0,
+      "maxRollWeightKg": 86.56,
+      "rollsPer1000Kg": 23.9,
+      "kilosPerRoll": 41.77
+    },
+    {
+      "qualityCode": "MED 101",
+      "totalRollsHistorical": 2446,
+      "totalWeightKg": 106975.88,
+      "avgRollWeightKg": 43.74,
+      "minRollWeightKg": 18.62,
+      "maxRollWeightKg": 450.6,
+      "rollsPer1000Kg": 22.9,
+      "kilosPerRoll": 43.74
+    },
+    {
+      "qualityCode": "Q 1015",
+      "totalRollsHistorical": 1923,
+      "totalWeightKg": 73629.85,
+      "avgRollWeightKg": 38.29,
+      "minRollWeightKg": 15.98,
+      "maxRollWeightKg": 52.66,
+      "rollsPer1000Kg": 26.1,
+      "kilosPerRoll": 38.29
+    },
+    {
+      "qualityCode": "CR 2",
+      "totalRollsHistorical": 1914,
+      "totalWeightKg": 74714.03,
+      "avgRollWeightKg": 39.04,
+      "minRollWeightKg": 10.8,
+      "maxRollWeightKg": 53.68,
+      "rollsPer1000Kg": 25.6,
+      "kilosPerRoll": 39.04
+    },
+    {
+      "qualityCode": "Q 5651",
+      "totalRollsHistorical": 915,
+      "totalWeightKg": 23212.6,
+      "avgRollWeightKg": 25.37,
+      "minRollWeightKg": 8.68,
+      "maxRollWeightKg": 33.52,
+      "rollsPer1000Kg": 39.4,
+      "kilosPerRoll": 25.37
+    },
+    {
+      "qualityCode": "PD 190",
+      "totalRollsHistorical": 861,
+      "totalWeightKg": 30419.99,
+      "avgRollWeightKg": 35.33,
+      "minRollWeightKg": 26.48,
+      "maxRollWeightKg": 50.5,
+      "rollsPer1000Kg": 28.3,
+      "kilosPerRoll": 35.33
+    },
+    {
+      "qualityCode": "T 3",
+      "totalRollsHistorical": 831,
+      "totalWeightKg": 32128.8,
+      "avgRollWeightKg": 38.66,
+      "minRollWeightKg": 25.6,
+      "maxRollWeightKg": 76.74,
+      "rollsPer1000Kg": 25.9,
+      "kilosPerRoll": 38.66
+    },
+    {
+      "qualityCode": "PD 1000",
+      "totalRollsHistorical": 463,
+      "totalWeightKg": 19405.06,
+      "avgRollWeightKg": 41.91,
+      "minRollWeightKg": 27.84,
+      "maxRollWeightKg": 45.82,
+      "rollsPer1000Kg": 23.9,
+      "kilosPerRoll": 41.91
+    },
+    {
+      "qualityCode": "PD 500/1",
+      "totalRollsHistorical": 242,
+      "totalWeightKg": 9685.76,
+      "avgRollWeightKg": 40.02,
+      "minRollWeightKg": 13.02,
+      "maxRollWeightKg": 49.06,
+      "rollsPer1000Kg": 25.0,
+      "kilosPerRoll": 40.02
+    },
+    {
+      "qualityCode": "KFR 6020/IA",
+      "totalRollsHistorical": 153,
+      "totalWeightKg": 3721.7,
+      "avgRollWeightKg": 24.32,
+      "minRollWeightKg": 16.9,
+      "maxRollWeightKg": 25.8,
+      "rollsPer1000Kg": 41.1,
+      "kilosPerRoll": 24.32
+    },
+    {
+      "qualityCode": "T1",
+      "totalRollsHistorical": 110,
+      "totalWeightKg": 3883.14,
+      "avgRollWeightKg": 35.3,
+      "minRollWeightKg": 26.0,
+      "maxRollWeightKg": 45.52,
+      "rollsPer1000Kg": 28.3,
+      "kilosPerRoll": 35.3
+    },
+    {
+      "qualityCode": "T 1",
+      "totalRollsHistorical": 90,
+      "totalWeightKg": 3390.75,
+      "avgRollWeightKg": 37.67,
+      "minRollWeightKg": 27.12,
+      "maxRollWeightKg": 43.94,
+      "rollsPer1000Kg": 26.5,
+      "kilosPerRoll": 37.67
+    },
+    {
+      "qualityCode": "Q 20",
+      "totalRollsHistorical": 62,
+      "totalWeightKg": 2689.92,
+      "avgRollWeightKg": 43.39,
+      "minRollWeightKg": 24.4,
+      "maxRollWeightKg": 57.2,
+      "rollsPer1000Kg": 23.0,
+      "kilosPerRoll": 43.39
+    },
+    {
+      "qualityCode": "MED101",
+      "totalRollsHistorical": 32,
+      "totalWeightKg": 1253.6,
+      "avgRollWeightKg": 39.18,
+      "minRollWeightKg": 30.96,
+      "maxRollWeightKg": 51.28,
+      "rollsPer1000Kg": 25.5,
+      "kilosPerRoll": 39.18
+    },
+    {
+      "qualityCode": "T5",
+      "totalRollsHistorical": 17,
+      "totalWeightKg": 459.54,
+      "avgRollWeightKg": 27.03,
+      "minRollWeightKg": 22.1,
+      "maxRollWeightKg": 33.0,
+      "rollsPer1000Kg": 37.0,
+      "kilosPerRoll": 27.03
+    },
+    {
+      "qualityCode": "KWA 7/8",
+      "totalRollsHistorical": 14,
+      "totalWeightKg": 701.66,
+      "avgRollWeightKg": 50.12,
+      "minRollWeightKg": 44.02,
+      "maxRollWeightKg": 55.22,
+      "rollsPer1000Kg": 20.0,
+      "kilosPerRoll": 50.12
+    },
+    {
+      "qualityCode": "SJ 70",
+      "totalRollsHistorical": 8,
+      "totalWeightKg": 228.68,
+      "avgRollWeightKg": 28.59,
+      "minRollWeightKg": 19.58,
+      "maxRollWeightKg": 31.24,
+      "rollsPer1000Kg": 35.0,
+      "kilosPerRoll": 28.59
+    },
+    {
+      "qualityCode": "AR 2011",
+      "totalRollsHistorical": 5,
+      "totalWeightKg": 182.68,
+      "avgRollWeightKg": 36.54,
+      "minRollWeightKg": 30.8,
+      "maxRollWeightKg": 41.34,
+      "rollsPer1000Kg": 27.4,
+      "kilosPerRoll": 36.54
+    },
+    {
+      "qualityCode": "PC140/28",
+      "totalRollsHistorical": 5,
+      "totalWeightKg": 191.34,
+      "avgRollWeightKg": 38.27,
+      "minRollWeightKg": 35.26,
+      "maxRollWeightKg": 41.0,
+      "rollsPer1000Kg": 26.1,
+      "kilosPerRoll": 38.27
+    }
+  ]
+}
