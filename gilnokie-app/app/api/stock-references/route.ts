@@ -50,19 +50,18 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    console.log('Stock reference POST body:', JSON.stringify(body));
-    
     const {
       yarnTypeId,
       currentQuantity,
+      initialQuantity, // Accept both field names
       notes,
     } = body;
 
-    console.log('Parsed fields - yarnTypeId:', yarnTypeId, 'currentQuantity:', currentQuantity);
+    // Use initialQuantity if currentQuantity not provided (field name compatibility)
+    const quantity = currentQuantity ?? initialQuantity;
 
     // Validate required fields
-    if (!yarnTypeId || currentQuantity === undefined) {
-      console.log('Validation failed - yarnTypeId:', !!yarnTypeId, 'currentQuantity:', currentQuantity !== undefined);
+    if (!yarnTypeId || quantity === undefined) {
       return NextResponse.json(
         { error: 'Missing required fields: yarnTypeId, currentQuantity' },
         { status: 400 }
@@ -97,7 +96,7 @@ export async function POST(request: Request) {
       data: {
         stockReferenceNumber,
         yarnTypeId,
-        currentQuantity: parseFloat(currentQuantity),
+        currentQuantity: parseFloat(quantity),
         stockDate: new Date(),
         notes: notes || null,
       },
