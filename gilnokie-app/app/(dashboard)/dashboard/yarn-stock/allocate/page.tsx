@@ -257,7 +257,7 @@ export default function AllocateYarnPage() {
                       ) : (
                         jobCards?.map((jobCard) => (
                           <SelectItem key={jobCard.id} value={jobCard.id}>
-                            {jobCard.jobCardNumber} - {jobCard.customer.name} ({jobCard.fabricQuality.qualityCode})
+                            {jobCard.jobCardNumber} - {jobCard.customer?.name || 'Unknown'} ({jobCard.fabricQuality?.qualityCode || 'N/A'})
                           </SelectItem>
                         ))
                       )}
@@ -408,11 +408,11 @@ export default function AllocateYarnPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Customer</p>
-                      <p className="font-medium">{selectedJobCard.customer.name}</p>
+                      <p className="font-medium">{selectedJobCard.customer?.name || 'Unknown'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Fabric Quality</p>
-                      <p className="font-medium">{selectedJobCard.fabricQuality.qualityCode}</p>
+                      <p className="font-medium">{selectedJobCard.fabricQuality?.qualityCode || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Stock Reference</p>
@@ -428,22 +428,24 @@ export default function AllocateYarnPage() {
                 </Card>
 
                 {/* Fabric Composition */}
-                {selectedJobCard.fabricQuality.fabricContent?.length > 0 && (
+                {selectedJobCard.fabricQuality?.fabricContent?.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Fabric Composition</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      {selectedJobCard.fabricQuality.fabricContent.map((content) => (
-                        <div key={content.id} className="flex justify-between items-center">
-                          <span className="text-sm">{content.yarnType.code}</span>
-                          <Badge variant="outline">
-                            {typeof content.percentage === 'string'
-                              ? content.percentage
-                              : content.percentage}%
-                          </Badge>
-                        </div>
-                      ))}
+                      {selectedJobCard.fabricQuality.fabricContent
+                        .filter((content) => content?.yarnType)
+                        .map((content) => (
+                          <div key={content.id} className="flex justify-between items-center">
+                            <span className="text-sm">{content.yarnType.code}</span>
+                            <Badge variant="outline">
+                              {typeof content.percentage === 'string'
+                                ? content.percentage
+                                : content.percentage}%
+                            </Badge>
+                          </div>
+                        ))}
                     </CardContent>
                   </Card>
                 )}
