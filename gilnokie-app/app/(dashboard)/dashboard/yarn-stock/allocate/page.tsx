@@ -182,18 +182,20 @@ export default function AllocateYarnPage() {
   // Calculate already allocated yarn for the selected job card
   const getAllocatedYarn = () => {
     if (!selectedJobCard?.yarnStock) return [];
-    return selectedJobCard.yarnStock.map(stock => ({
-      yarnType: stock.stockRef.yarnType.code,
-      received: typeof stock.quantityReceived === 'string'
-        ? parseFloat(stock.quantityReceived)
-        : stock.quantityReceived,
-      used: typeof stock.quantityUsed === 'string'
-        ? parseFloat(stock.quantityUsed)
-        : stock.quantityUsed,
-      loss: typeof stock.quantityLoss === 'string'
-        ? parseFloat(stock.quantityLoss)
-        : stock.quantityLoss,
-    }));
+    return selectedJobCard.yarnStock
+      .filter(stock => stock.stockRef?.yarnType) // Filter out entries with missing relations
+      .map(stock => ({
+        yarnType: stock.stockRef.yarnType.code,
+        received: typeof stock.quantityReceived === 'string'
+          ? parseFloat(stock.quantityReceived)
+          : stock.quantityReceived,
+        used: typeof stock.quantityUsed === 'string'
+          ? parseFloat(stock.quantityUsed)
+          : stock.quantityUsed,
+        loss: typeof stock.quantityLoss === 'string'
+          ? parseFloat(stock.quantityLoss)
+          : stock.quantityLoss,
+      }));
   };
 
   const allocatedYarn = getAllocatedYarn();
