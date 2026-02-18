@@ -54,7 +54,92 @@ const MATERIALS = [
   'Lycra',
   'Viscose',
   'Acrylic',
+  'Nylon',
+  'Wool',
+  'Silk',
+  'Spandex',
 ];
+
+// Material abbreviations for code generation
+const MATERIAL_ABBREV: Record<string, string> = {
+  'Cotton': 'COT',
+  'Polyester': 'PES',
+  'Polycotton': 'PC',
+  'Lycra': 'LYC',
+  'Viscose': 'VIS',
+  'Acrylic': 'ACR',
+  'Nylon': 'NYL',
+  'Wool': 'WOL',
+  'Silk': 'SLK',
+  'Spandex': 'SPX',
+};
+
+// Common color abbreviations
+const COLOR_ABBREV: Record<string, string> = {
+  'white': 'WHT',
+  'black': 'BLK',
+  'red': 'RED',
+  'blue': 'BLU',
+  'green': 'GRN',
+  'yellow': 'YLW',
+  'orange': 'ORG',
+  'purple': 'PUR',
+  'pink': 'PNK',
+  'brown': 'BRN',
+  'grey': 'GRY',
+  'gray': 'GRY',
+  'navy': 'NVY',
+  'beige': 'BGE',
+  'cream': 'CRM',
+  'natural': 'NAT',
+  'ecru': 'ECR',
+  'charcoal': 'CHR',
+  'maroon': 'MRN',
+  'teal': 'TEA',
+  'turquoise': 'TRQ',
+  'gold': 'GLD',
+  'silver': 'SLV',
+  'olive': 'OLV',
+  'coral': 'CRL',
+  'burgundy': 'BRG',
+  'khaki': 'KHK',
+  'indigo': 'IND',
+};
+
+// Generate color abbreviation - uses lookup or creates from first 3 letters
+const getColorAbbrev = (color: string): string => {
+  if (!color) return '';
+  const lowerColor = color.toLowerCase().trim();
+  // Check if it's in our known abbreviations
+  if (COLOR_ABBREV[lowerColor]) {
+    return COLOR_ABBREV[lowerColor];
+  }
+  // Otherwise, take first 3 characters and uppercase
+  return lowerColor.slice(0, 3).toUpperCase();
+};
+
+// Generate yarn code from material, tex count, and color
+const generateYarnCode = (material: string, texCount: string, color: string): string => {
+  const parts: string[] = [];
+  
+  if (material && MATERIAL_ABBREV[material]) {
+    parts.push(MATERIAL_ABBREV[material]);
+  }
+  
+  if (texCount) {
+    parts.push(texCount.trim());
+  }
+  
+  if (color) {
+    // Handle multiple colors (e.g., "White, Red" -> "WHT-RED")
+    const colors = color.split(/[,\/]/).map(c => getColorAbbrev(c.trim())).filter(Boolean);
+    if (colors.length > 0) {
+      parts.push(colors.join('-'));
+    }
+  }
+  
+  return parts.join('-');
+};
 
 export default function YarnTypesPage() {
   const [search, setSearch] = useState('');
@@ -324,6 +409,9 @@ export default function YarnTypesPage() {
                   required
                   placeholder="e.g., COT-24-WHT"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Auto-generated from Material, Tex Count, and Color. You can edit it manually.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
@@ -341,9 +429,10 @@ export default function YarnTypesPage() {
                   <Label htmlFor="material">Material</Label>
                   <Select
                     value={formData.material}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, material: value })
-                    }
+                    onValueChange={(value) => {
+                      const newCode = generateYarnCode(value, formData.texCount, formData.color);
+                      setFormData({ ...formData, material: value, code: newCode || formData.code });
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select material" />
@@ -362,9 +451,10 @@ export default function YarnTypesPage() {
                   <Input
                     id="texCount"
                     value={formData.texCount}
-                    onChange={(e) =>
-                      setFormData({ ...formData, texCount: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const newCode = generateYarnCode(formData.material, e.target.value, formData.color);
+                      setFormData({ ...formData, texCount: e.target.value, code: newCode || formData.code });
+                    }}
                     placeholder="e.g., 24"
                   />
                 </div>
@@ -375,9 +465,10 @@ export default function YarnTypesPage() {
                   <Input
                     id="color"
                     value={formData.color}
-                    onChange={(e) =>
-                      setFormData({ ...formData, color: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const newCode = generateYarnCode(formData.material, formData.texCount, e.target.value);
+                      setFormData({ ...formData, color: e.target.value, code: newCode || formData.code });
+                    }}
                     placeholder="e.g., White, Red"
                   />
                 </div>
