@@ -45,16 +45,16 @@ type JobCard = {
   estimatedYarnRequired: number | string | null;
   customer: {
     name: string;
-  };
+  } | null;
   fabricQuality: {
     qualityCode: string;
     description: string | null;
     fabricContent: Array<{
       id: string;
       percentage: number | string;
-      yarnType: YarnType;
-    }>;
-  };
+      yarnType: YarnType | null;
+    }> | null;
+  } | null;
   yarnStock: Array<{
     id: string;
     quantityReceived: number | string;
@@ -62,8 +62,8 @@ type JobCard = {
     quantityLoss: number | string;
     stockRef: {
       yarnType: YarnType;
-    };
-  }>;
+    } | null;
+  }> | null;
 };
 
 export default function AllocateYarnPage() {
@@ -181,11 +181,11 @@ export default function AllocateYarnPage() {
 
   // Calculate already allocated yarn for the selected job card
   const getAllocatedYarn = () => {
-    if (!selectedJobCard?.yarnStock) return [];
+    if (!selectedJobCard?.yarnStock || !Array.isArray(selectedJobCard.yarnStock)) return [];
     return selectedJobCard.yarnStock
-      .filter(stock => stock.stockRef?.yarnType) // Filter out entries with missing relations
+      .filter(stock => stock && stock.stockRef && stock.stockRef.yarnType) // Filter out entries with missing relations
       .map(stock => ({
-        yarnType: stock.stockRef.yarnType.code,
+        yarnType: stock.stockRef!.yarnType.code,
         received: typeof stock.quantityReceived === 'string'
           ? parseFloat(stock.quantityReceived)
           : stock.quantityReceived,
@@ -428,17 +428,17 @@ export default function AllocateYarnPage() {
                 </Card>
 
                 {/* Fabric Composition */}
-                {selectedJobCard.fabricQuality?.fabricContent?.length > 0 && (
+                {selectedJobCard.fabricQuality?.fabricContent && selectedJobCard.fabricQuality.fabricContent.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Fabric Composition</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {selectedJobCard.fabricQuality.fabricContent
-                        .filter((content) => content?.yarnType)
+                        .filter((content) => content && content.yarnType)
                         .map((content) => (
                           <div key={content.id} className="flex justify-between items-center">
-                            <span className="text-sm">{content.yarnType.code}</span>
+                            <span className="text-sm">{content.yarnType?.code || 'Unknown'}</span>
                             <Badge variant="outline">
                               {typeof content.percentage === 'string'
                                 ? content.percentage
