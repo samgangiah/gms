@@ -33,7 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Plus, Search, Package, Truck, Eye } from 'lucide-react';
+import { Plus, Search, Package, Truck, Eye, Pencil } from 'lucide-react';
 import { formatDate, formatWeight } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -93,7 +93,11 @@ const DELIVERY_STATUSES = ['pending', 'scheduled', 'in_transit', 'delivered', 'c
 export default function PackingDeliveryPage() {
   const [activeTab, setActiveTab] = useState('packing');
   const [isPackingDialogOpen, setIsPackingDialogOpen] = useState(false);
+  const [isEditPackingDialogOpen, setIsEditPackingDialogOpen] = useState(false);
   const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false);
+  const [isEditDeliveryDialogOpen, setIsEditDeliveryDialogOpen] = useState(false);
+  const [editingPacking, setEditingPacking] = useState<PackingList | null>(null);
+  const [editingDelivery, setEditingDelivery] = useState<Delivery | null>(null);
   const [search, setSearch] = useState('');
 
   const [packingFormData, setPackingFormData] = useState({
@@ -202,6 +206,56 @@ export default function PackingDeliveryPage() {
     },
   });
 
+  // Update packing list mutation
+  const updatePackingMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await fetch(`/api/packing/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update packing list');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['packing'] });
+      toast.success('Packing list updated successfully');
+      setIsEditPackingDialogOpen(false);
+      setEditingPacking(null);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  // Update delivery mutation
+  const updateDeliveryMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await fetch(`/api/delivery/${data.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update delivery');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['delivery'] });
+      toast.success('Delivery updated successfully');
+      setIsEditDeliveryDialogOpen(false);
+      setEditingDelivery(null);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
   const resetPackingForm = () => {
     setPackingFormData({
       jobCardId: '',
@@ -268,6 +322,58 @@ export default function PackingDeliveryPage() {
     }
 
     createDeliveryMutation.mutate(deliveryFormData);
+  };
+
+  const handleEditPacking = (packing: PackingList) => {
+    setEditingPacking(packing);
+    setIsEditPackingDialogOpen(true);
+  };
+
+  const handleEditPackingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPacking) return;
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    const data = {
+      id: editingPacking.id,
+      packingDate: formData.get('packingDate'),
+      numberOfCartons: formData.get('numberOfCartons'),
+      totalNetWeight: formData.get('totalNetWeight'),
+      totalGrossWeight: formData.get('totalGrossWeight') || null,
+      packingNotes: formData.get('packingNotes') || null,
+      packingStatus: formData.get('packingStatus'),
+    };
+
+    updatePackingMutation.mutate(data);
+  };
+
+  const handleEditDelivery = (delivery: Delivery) => {
+    setEditingDelivery(delivery);
+    setIsEditDeliveryDialogOpen(true);
+  };
+
+  const handleEditDeliverySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDelivery) return;
+
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    const data = {
+      id: editingDelivery.id,
+      scheduledDeliveryDate: formData.get('scheduledDeliveryDate') || null,
+      deliveryDate: formData.get('deliveryDate') || null,
+      deliveryMethod: formData.get('deliveryMethod'),
+      deliveryAddress: formData.get('deliveryAddress'),
+      courierName: formData.get('courierName') || null,
+      trackingNumber: formData.get('trackingNumber') || null,
+      deliveryNotes: formData.get('deliveryNotes') || null,
+      deliveryStatus: formData.get('deliveryStatus'),
+    };
+
+    updateDeliveryMutation.mutate(data);
   };
 
   const filteredPackingLists = packingLists?.filter(
@@ -466,6 +572,7 @@ export default function PackingDeliveryPage() {
                         <TableHead>Gross Weight</TableHead>
                         <TableHead>Items</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -489,6 +596,15 @@ export default function PackingDeliveryPage() {
                             <Badge variant={getPackingStatusColor(packing.packingStatus)}>
                               {packing.packingStatus.replace('_', ' ')}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditPacking(packing)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -527,6 +643,7 @@ export default function PackingDeliveryPage() {
                         <TableHead>Delivery Date</TableHead>
                         <TableHead>Tracking #</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -553,6 +670,15 @@ export default function PackingDeliveryPage() {
                             <Badge variant={getDeliveryStatusColor(delivery.deliveryStatus)}>
                               {delivery.deliveryStatus.replace('_', ' ')}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditDelivery(delivery)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -884,6 +1010,251 @@ export default function PackingDeliveryPage() {
               </Button>
               <Button type="submit" disabled={createDeliveryMutation.isPending}>
                 {createDeliveryMutation.isPending ? 'Creating...' : 'Create Delivery'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Packing List Dialog */}
+      <Dialog open={isEditPackingDialogOpen} onOpenChange={setIsEditPackingDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <form onSubmit={handleEditPackingSubmit}>
+            <DialogHeader>
+              <DialogTitle>Edit Packing List</DialogTitle>
+              <DialogDescription>
+                Update packing list {editingPacking?.packingListNumber}
+              </DialogDescription>
+            </DialogHeader>
+            {editingPacking && (
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label>Job Card</Label>
+                  <Input
+                    value={`${editingPacking.jobCard.jobCardNumber} - ${editingPacking.jobCard.customer.name}`}
+                    disabled
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-packingDate">Packing Date</Label>
+                    <Input
+                      id="edit-packingDate"
+                      name="packingDate"
+                      type="date"
+                      defaultValue={editingPacking.packingDate.split('T')[0]}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-packingStatus">Status</Label>
+                    <select
+                      id="edit-packingStatus"
+                      name="packingStatus"
+                      defaultValue={editingPacking.packingStatus}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      {PACKING_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status.replace('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-numberOfCartons">Number of Cartons</Label>
+                    <Input
+                      id="edit-numberOfCartons"
+                      name="numberOfCartons"
+                      type="number"
+                      defaultValue={editingPacking.numberOfCartons}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-totalNetWeight">Net Weight (kg)</Label>
+                    <Input
+                      id="edit-totalNetWeight"
+                      name="totalNetWeight"
+                      type="number"
+                      step="0.01"
+                      defaultValue={editingPacking.totalNetWeight}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-totalGrossWeight">Gross Weight (kg)</Label>
+                    <Input
+                      id="edit-totalGrossWeight"
+                      name="totalGrossWeight"
+                      type="number"
+                      step="0.01"
+                      defaultValue={editingPacking.totalGrossWeight || ''}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-packingNotes">Notes</Label>
+                  <Textarea
+                    id="edit-packingNotes"
+                    name="packingNotes"
+                    rows={3}
+                    defaultValue={editingPacking.packingNotes || ''}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsEditPackingDialogOpen(false);
+                  setEditingPacking(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updatePackingMutation.isPending}>
+                {updatePackingMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Delivery Dialog */}
+      <Dialog open={isEditDeliveryDialogOpen} onOpenChange={setIsEditDeliveryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <form onSubmit={handleEditDeliverySubmit}>
+            <DialogHeader>
+              <DialogTitle>Edit Delivery</DialogTitle>
+              <DialogDescription>
+                Update delivery {editingDelivery?.deliveryNoteNumber}
+              </DialogDescription>
+            </DialogHeader>
+            {editingDelivery && (
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label>Job Card</Label>
+                  <Input
+                    value={`${editingDelivery.jobCard.jobCardNumber} - ${editingDelivery.jobCard.customer.name}`}
+                    disabled
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-scheduledDeliveryDate">Scheduled Date</Label>
+                    <Input
+                      id="edit-scheduledDeliveryDate"
+                      name="scheduledDeliveryDate"
+                      type="date"
+                      defaultValue={editingDelivery.scheduledDeliveryDate?.split('T')[0] || ''}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-deliveryDate">Actual Delivery Date</Label>
+                    <Input
+                      id="edit-deliveryDate"
+                      name="deliveryDate"
+                      type="date"
+                      defaultValue={editingDelivery.deliveryDate?.split('T')[0] || ''}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-deliveryMethod">Delivery Method</Label>
+                    <select
+                      id="edit-deliveryMethod"
+                      name="deliveryMethod"
+                      defaultValue={editingDelivery.deliveryMethod}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      {DELIVERY_METHODS.map((method) => (
+                        <option key={method} value={method}>
+                          {method}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-deliveryStatus">Status</Label>
+                    <select
+                      id="edit-deliveryStatus"
+                      name="deliveryStatus"
+                      defaultValue={editingDelivery.deliveryStatus}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      {DELIVERY_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status.replace('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-deliveryAddress">Delivery Address</Label>
+                  <Textarea
+                    id="edit-deliveryAddress"
+                    name="deliveryAddress"
+                    rows={2}
+                    defaultValue={editingDelivery.deliveryAddress}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-courierName">Courier Name</Label>
+                    <Input
+                      id="edit-courierName"
+                      name="courierName"
+                      defaultValue={editingDelivery.courierName || ''}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-trackingNumber">Tracking Number</Label>
+                    <Input
+                      id="edit-trackingNumber"
+                      name="trackingNumber"
+                      defaultValue={editingDelivery.trackingNumber || ''}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-deliveryNotes">Delivery Notes</Label>
+                  <Textarea
+                    id="edit-deliveryNotes"
+                    name="deliveryNotes"
+                    rows={2}
+                    defaultValue={editingDelivery.deliveryNotes || ''}
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsEditDeliveryDialogOpen(false);
+                  setEditingDelivery(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateDeliveryMutation.isPending}>
+                {updateDeliveryMutation.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>
           </form>
