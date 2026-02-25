@@ -32,7 +32,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Layers } from 'lucide-react';
 import { formatDate, formatWeight } from '@/lib/utils';
 
 type JobCard = {
@@ -74,6 +74,19 @@ export default function ProductionPage() {
     qualityGrade: 'Pass',
     notes: '',
   });
+
+  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState({
+    jobCardId: '',
+    numberOfRolls: 1,
+    productionDate: new Date().toISOString().split('T')[0],
+    productionTime: new Date().toTimeString().slice(0, 5),
+    machineNumber: '',
+    operatorName: '',
+    qualityGrade: 'Pass',
+    notes: '',
+  });
+  const [rollWeights, setRollWeights] = useState<string[]>(['']);
 
   const queryClient = useQueryClient();
 
@@ -124,6 +137,31 @@ export default function ProductionPage() {
     },
   });
 
+  const bulkCreateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await fetch('/api/production/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to create production entries');
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['production'] });
+      const count = data.data?.length || 0;
+      toast.success(`${count} production ${count === 1 ? 'entry' : 'entries'} created successfully`);
+      setIsBulkDialogOpen(false);
+      resetBulkForm();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       jobCardId: '',
@@ -134,6 +172,57 @@ export default function ProductionPage() {
       operatorName: '',
       qualityGrade: 'Pass',
       notes: '',
+    });
+  };
+
+  const resetBulkForm = () => {
+    setBulkFormData({
+      jobCardId: '',
+      numberOfRolls: 1,
+      productionDate: new Date().toISOString().split('T')[0],
+      productionTime: new Date().toTimeString().slice(0, 5),
+      machineNumber: '',
+      operatorName: '',
+      qualityGrade: 'Pass',
+      notes: '',
+    });
+    setRollWeights(['']);
+  };
+
+  const handleNumberOfRollsChange = (num: number) => {
+    const clamped = Math.max(1, Math.min(50, num));
+    setBulkFormData({ ...bulkFormData, numberOfRolls: clamped });
+    setRollWeights((prev) => {
+      const newWeights = [...prev];
+      while (newWeights.length < clamped) newWeights.push('');
+      return newWeights.slice(0, clamped);
+    });
+  };
+
+  const handleBulkSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!bulkFormData.jobCardId) {
+      toast.error('Please select a job card');
+      return;
+    }
+
+    const rolls = rollWeights.map((w) => ({ weight: parseFloat(w) }));
+    const invalidRolls = rolls.filter((r) => isNaN(r.weight) || r.weight <= 0);
+    if (invalidRolls.length > 0) {
+      toast.error('Please enter a valid weight for all rolls');
+      return;
+    }
+
+    bulkCreateMutation.mutate({
+      jobCardId: bulkFormData.jobCardId,
+      productionDate: bulkFormData.productionDate,
+      productionTime: bulkFormData.productionTime,
+      machineNumber: bulkFormData.machineNumber,
+      operatorName: bulkFormData.operatorName,
+      qualityGrade: bulkFormData.qualityGrade,
+      notes: bulkFormData.notes,
+      rolls,
     });
   };
 
@@ -153,6 +242,7 @@ export default function ProductionPage() {
   };
 
   const selectedJobCard = activeJobCards?.find(jc => jc.id === formData.jobCardId);
+  const selectedBulkJobCard = activeJobCards?.find(jc => jc.id === bulkFormData.jobCardId);
 
   // Calculate today's statistics
   const todayStats = production
@@ -176,10 +266,16 @@ export default function ProductionPage() {
             Record fabric pieces produced on the shop floor
           </p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Production Entry
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsDialogOpen(true)} variant="outline">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Single Roll
+          </Button>
+          <Button onClick={() => { resetBulkForm(); setIsBulkDialogOpen(true); }}>
+            <Layers className="mr-2 h-4 w-4" />
+            Bulk Add Rolls
+          </Button>
+        </div>
       </div>
 
       {/* Today's Statistics */}
@@ -462,6 +558,208 @@ export default function ProductionPage() {
               </Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? 'Creating...' : 'Create Entry'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Production Entry Dialog */}
+      <Dialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <form onSubmit={handleBulkSubmit}>
+            <DialogHeader>
+              <DialogTitle>Bulk Add Production Rolls</DialogTitle>
+              <DialogDescription>
+                Add multiple rolls at once. Set the shared details, then enter individual weights.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="bulkJobCardId">
+                  Job Card <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={bulkFormData.jobCardId}
+                  onValueChange={(value) =>
+                    setBulkFormData({ ...bulkFormData, jobCardId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select job card" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeJobCards?.map((jobCard) => (
+                      <SelectItem key={jobCard.id} value={jobCard.id}>
+                        {jobCard.jobCardNumber} - {jobCard.customer.name} ({jobCard.fabricQuality.qualityCode})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedBulkJobCard && (
+                  <p className="text-xs text-muted-foreground">
+                    Customer: {selectedBulkJobCard.customer.name} | Quality: {selectedBulkJobCard.fabricQuality.qualityCode}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="bulkProductionDate">Production Date</Label>
+                  <Input
+                    id="bulkProductionDate"
+                    type="date"
+                    value={bulkFormData.productionDate}
+                    onChange={(e) =>
+                      setBulkFormData({ ...bulkFormData, productionDate: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="bulkProductionTime">Production Time</Label>
+                  <Input
+                    id="bulkProductionTime"
+                    type="time"
+                    value={bulkFormData.productionTime}
+                    onChange={(e) =>
+                      setBulkFormData({ ...bulkFormData, productionTime: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="bulkMachine">Machine</Label>
+                  <Select
+                    value={bulkFormData.machineNumber}
+                    onValueChange={(value) =>
+                      setBulkFormData({ ...bulkFormData, machineNumber: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select machine" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MACHINES.map((machine) => (
+                        <SelectItem key={machine} value={machine}>
+                          {machine}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="bulkOperator">Operator Name</Label>
+                  <Input
+                    id="bulkOperator"
+                    value={bulkFormData.operatorName}
+                    onChange={(e) =>
+                      setBulkFormData({ ...bulkFormData, operatorName: e.target.value })
+                    }
+                    placeholder="e.g., John Doe"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="bulkGrade">Quality Grade</Label>
+                  <Select
+                    value={bulkFormData.qualityGrade}
+                    onValueChange={(value) =>
+                      setBulkFormData({ ...bulkFormData, qualityGrade: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {QUALITY_GRADES.map((grade) => (
+                        <SelectItem key={grade} value={grade}>
+                          {grade}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="bulkNumberOfRolls">
+                    Number of Rolls <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="bulkNumberOfRolls"
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={bulkFormData.numberOfRolls}
+                    onChange={(e) => handleNumberOfRollsChange(parseInt(e.target.value) || 1)}
+                    className="text-lg"
+                  />
+                </div>
+              </div>
+
+              {/* Individual Roll Weights */}
+              <div className="grid gap-2">
+                <Label>
+                  Roll Weights (kg) <span className="text-destructive">*</span>
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Enter the weight for each roll. Piece numbers will be auto-generated.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-60 overflow-y-auto rounded-md border p-3">
+                  {rollWeights.map((weight, index) => (
+                    <div key={index} className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground w-6 text-right shrink-0">
+                        {index + 1}.
+                      </span>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={weight}
+                        onChange={(e) => {
+                          const newWeights = [...rollWeights];
+                          newWeights[index] = e.target.value;
+                          setRollWeights(newWeights);
+                        }}
+                        placeholder="0.00"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+                {rollWeights.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Total: {formatWeight(rollWeights.reduce((sum, w) => sum + (parseFloat(w) || 0), 0))} across {rollWeights.filter(w => parseFloat(w) > 0).length} rolls
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="bulkNotes">Notes</Label>
+                <Textarea
+                  id="bulkNotes"
+                  value={bulkFormData.notes}
+                  onChange={(e) =>
+                    setBulkFormData({ ...bulkFormData, notes: e.target.value })
+                  }
+                  rows={2}
+                  placeholder="Any issues, observations, or comments..."
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsBulkDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={bulkCreateMutation.isPending}>
+                {bulkCreateMutation.isPending
+                  ? 'Creating...'
+                  : `Add ${rollWeights.filter(w => parseFloat(w) > 0).length} Rolls`}
               </Button>
             </DialogFooter>
           </form>
