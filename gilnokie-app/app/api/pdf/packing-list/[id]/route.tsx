@@ -28,7 +28,16 @@ export async function GET(
         jobCard: {
           include: {
             customer: true,
-            fabricQuality: true,
+            fabricQuality: {
+              include: {
+                fabricContent: {
+                  include: {
+                    yarnType: true,
+                  },
+                  orderBy: { position: 'asc' },
+                },
+              },
+            },
           },
         },
         items: {
@@ -49,6 +58,19 @@ export async function GET(
       ...packingList,
       totalGrossWeight: packingList.totalGrossWeight?.toNumber() || null,
       totalNetWeight: packingList.totalNetWeight.toNumber(),
+      jobCard: {
+        ...packingList.jobCard,
+        quantityRequired: packingList.jobCard.quantityRequired?.toNumber?.() || packingList.jobCard.quantityRequired,
+        fabricQuality: {
+          ...packingList.jobCard.fabricQuality,
+          weight: packingList.jobCard.fabricQuality.weight?.toNumber?.() || null,
+          width: packingList.jobCard.fabricQuality.width?.toNumber?.() || null,
+          fabricContent: packingList.jobCard.fabricQuality.fabricContent?.map((fc: any) => ({
+            ...fc,
+            percentage: fc.percentage?.toNumber?.() || fc.percentage,
+          })) || [],
+        },
+      },
       items: packingList.items.map((item) => ({
         ...item,
         production: {
