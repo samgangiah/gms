@@ -23,6 +23,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!body.machineNumber) {
+      return NextResponse.json(
+        { error: 'machineNumber is required for piece number generation' },
+        { status: 400 }
+      );
+    }
+
     if (!Array.isArray(body.rolls) || body.rolls.length === 0) {
       return NextResponse.json(
         { error: 'rolls array is required and must contain at least one item' },
@@ -51,11 +58,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract year and job number from job card number (JC-YYYYMMDD-XXX)
-    const year = new Date().getFullYear().toString().slice(-2);
+    // Extract machine number from "Machine X" and multiply by 100
+    // e.g., Machine 1 = 100, Machine 8 = 800
+    const machineMatch = (body.machineNumber || '').match(/(\d+)/);
+    const machinePrefix = machineMatch ? String(parseInt(machineMatch[1], 10) * 100) : '000';
+
+    // Extract job card number from job card number (JC-YYYYMMDD-XXX)
     const jobNumberMatch = jobCard.jobCardNumber.match(/-(\d+)$/);
-    const jobNumber = jobNumberMatch ? jobNumberMatch[1].padStart(5, '0') : '00001';
-    const piecePrefix = `${year}${jobNumber}-`;
+    const jobNumber = jobNumberMatch ? jobNumberMatch[1].padStart(4, '0') : '0001';
+    const piecePrefix = `${machinePrefix}${jobNumber}-`;
 
     // Find the highest existing piece number for this prefix to avoid race conditions
     const lastPiece = await prisma.productionInfo.findFirst({

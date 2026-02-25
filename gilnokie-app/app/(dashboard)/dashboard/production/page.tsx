@@ -206,6 +206,10 @@ export default function ProductionPage() {
       toast.error('Please select a job card');
       return;
     }
+    if (!bulkFormData.machineNumber) {
+      toast.error('Please select a machine (required for piece number)');
+      return;
+    }
 
     const rolls = rollWeights.map((w) => ({ weight: parseFloat(w) }));
     const invalidRolls = rolls.filter((r) => isNaN(r.weight) || r.weight <= 0);
@@ -231,6 +235,10 @@ export default function ProductionPage() {
 
     if (!formData.jobCardId) {
       toast.error('Please select a job card');
+      return;
+    }
+    if (!formData.machineNumber) {
+      toast.error('Please select a machine (required for piece number)');
       return;
     }
     if (!formData.weight || parseFloat(formData.weight) <= 0) {
@@ -503,7 +511,9 @@ export default function ProductionPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="machineNumber">Machine</Label>
+                  <Label htmlFor="machineNumber">
+                    Machine <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={formData.machineNumber}
                     onValueChange={(value) =>
@@ -630,7 +640,9 @@ export default function ProductionPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="bulkMachine">Machine</Label>
+                  <Label htmlFor="bulkMachine">
+                    Machine <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={bulkFormData.machineNumber}
                     onValueChange={(value) =>
