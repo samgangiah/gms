@@ -9,6 +9,7 @@ import { formatDate, formatWeight, formatWeightWithMeters, formatCurrency } from
 import { ArrowLeft, Edit, FileText, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { JobCardStatusChange } from '@/components/job-card-status-change';
+import { BulkProductionDialog } from '@/components/bulk-production-dialog';
 
 export default async function JobCardDetailPage({
   params,
@@ -289,9 +290,13 @@ export default async function JobCardDetailPage({
                     Individual pieces produced for this job card
                   </CardDescription>
                 </div>
-                <Link href={`/dashboard/production/new?jobCardId=${id}`}>
-                  <Button>Add Production Entry</Button>
-                </Link>
+                <BulkProductionDialog
+                  jobCardId={jobCard.id}
+                  jobCardNumber={jobCard.jobCardNumber}
+                  customerName={jobCard.customer.name}
+                  qualityCode={jobCard.fabricQuality.qualityCode}
+                  defaultMachine={jobCard.machineAssigned || ''}
+                />
               </div>
             </CardHeader>
             <CardContent>
